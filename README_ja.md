@@ -545,6 +545,57 @@ screenshot:
 
 無料、アカウント不要、サーバ管理不要。[ntfy.sh](https://ntfy.sh) — オープンソースのプッシュ通知サービスを利用。
 
+> **⚠️ セキュリティ注意:** トピック名がそのままパスワードです。知っている人は誰でも通知を読んだり、将軍にメッセージを送れてしまいます。推測されにくい名前を選び、**スクリーンショットやブログ、GitHubコミットなどで公開しないでください**。
+
+**動作確認:**
+
+```bash
+# テスト通知をスマホに送信
+bash scripts/ntfy.sh "将軍システムからのテスト通知 🏯"
+```
+
+スマホに通知が届けば設定完了です。届かない場合:
+- `config/settings.yaml` の `ntfy_topic` が設定されているか（空でないか、余分な引用符がないか）
+- スマホのntfyアプリで**完全に同じトピック名**を購読しているか
+- スマホがインターネットに接続されており、ntfyの通知が有効か
+
+**スマホから将軍に指示を送る方法:**
+
+1. スマホでntfyアプリを開く
+2. 購読しているトピックをタップ
+3. メッセージを入力（例: `React 19のベストプラクティスを調査して`）して送信
+4. `ntfy_listener.sh` が受信 → `queue/ntfy_inbox.yaml` に書き込み → 将軍を起こす
+5. 将軍がメッセージを読み、通常の家老→足軽パイプラインで処理
+
+送信したテキストがそのままコマンドになります。将軍に話しかけるように書けばOK — 特別な構文は不要です。
+
+**リスナーの手動起動**（`shutsujin_departure.sh` を使わない場合）:
+
+```bash
+# バックグラウンドでリスナーを起動
+nohup bash scripts/ntfy_listener.sh &>/dev/null &
+
+# 起動確認
+pgrep -f ntfy_listener.sh
+
+# ログを見ながら起動（フォアグラウンド）
+bash scripts/ntfy_listener.sh
+```
+
+リスナーは接続が切れても自動的に再接続します。`shutsujin_departure.sh` で出陣すれば自動起動されるため、手動起動は出陣スクリプトを使わない場合のみ必要です。
+
+**トラブルシューティング:**
+
+| 症状 | 対処 |
+|------|------|
+| スマホに通知が来ない | `settings.yaml` とntfyアプリのトピック名が完全に一致しているか確認 |
+| リスナーが起動しない | `bash scripts/ntfy_listener.sh` をフォアグラウンドで実行してエラーを確認 |
+| スマホ→将軍が動かない | リスナーが稼働中か確認: `pgrep -f ntfy_listener.sh` |
+| メッセージが将軍に届かない | `queue/ntfy_inbox.yaml` を確認 — メッセージがあれば将軍が処理中の可能性 |
+| "ntfy_topic not configured" エラー | `config/settings.yaml` に `ntfy_topic: "your-topic"` を追加 |
+| 通知が重複する | 再接続時の正常動作 — 将軍がメッセージIDで重複排除します |
+| トピック名を変更したのに通知が来ない | リスナーの再起動が必要: `pkill -f ntfy_listener.sh && nohup bash scripts/ntfy_listener.sh &>/dev/null &` |
+
 #### VoiceFlow通知
 
 行動心理学に基づくモチベーション通知：

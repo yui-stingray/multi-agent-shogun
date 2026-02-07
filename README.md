@@ -572,6 +572,57 @@ Two-way communication between your phone and the Shogun — no SSH, no Tailscale
 
 Free, no account required, no server to maintain. Uses [ntfy.sh](https://ntfy.sh) — an open-source push notification service.
 
+> **⚠️ Security:** Your topic name is your password. Anyone who knows it can read your notifications and send messages to your Shogun. Choose a hard-to-guess name and **never share it publicly** (e.g., in screenshots, blog posts, or GitHub commits).
+
+**Verify it works:**
+
+```bash
+# Send a test notification to your phone
+bash scripts/ntfy.sh "Test notification from Shogun 🏯"
+```
+
+If your phone receives the notification, you're all set. If not, check:
+- `config/settings.yaml` has `ntfy_topic` set (not empty, no extra quotes)
+- The ntfy app on your phone is subscribed to **the exact same topic name**
+- Your phone has internet access and ntfy notifications are enabled
+
+**Sending commands from your phone:**
+
+1. Open the ntfy app on your phone
+2. Tap your subscribed topic
+3. Type a message (e.g., `Research React 19 best practices`) and send
+4. `ntfy_listener.sh` receives it, writes to `queue/ntfy_inbox.yaml`, and wakes the Shogun
+5. The Shogun reads the message and processes it through the normal Karo → Ashigaru pipeline
+
+Any text you send becomes a command. Write it like you'd talk to the Shogun — no special syntax needed.
+
+**Manual listener start** (if not using `shutsujin_departure.sh`):
+
+```bash
+# Start the listener in the background
+nohup bash scripts/ntfy_listener.sh &>/dev/null &
+
+# Check if it's running
+pgrep -f ntfy_listener.sh
+
+# View listener logs (stderr output)
+bash scripts/ntfy_listener.sh  # Run in foreground to see logs
+```
+
+The listener automatically reconnects if the connection drops. `shutsujin_departure.sh` starts it automatically on deployment — you only need manual start if you skipped the deployment script.
+
+**Troubleshooting:**
+
+| Problem | Fix |
+|---------|-----|
+| No notifications on phone | Check topic name matches exactly in `settings.yaml` and ntfy app |
+| Listener not starting | Run `bash scripts/ntfy_listener.sh` in foreground to see errors |
+| Phone → Shogun not working | Verify listener is running: `pgrep -f ntfy_listener.sh` |
+| Messages not reaching Shogun | Check `queue/ntfy_inbox.yaml` — if message is there, Shogun may be busy |
+| "ntfy_topic not configured" error | Add `ntfy_topic: "your-topic"` to `config/settings.yaml` |
+| Duplicate notifications | Normal on reconnect — Shogun deduplicates by message ID |
+| Changed topic name but no notifications | The listener must be restarted: `pkill -f ntfy_listener.sh && nohup bash scripts/ntfy_listener.sh &>/dev/null &` |
+
 #### VoiceFlow Notifications
 
 Behavioral psychology-driven motivation through your notification feed:
