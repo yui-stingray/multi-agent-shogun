@@ -103,12 +103,30 @@ bash scripts/inbox_write.sh ashigaru3 "タスクYAMLを読んで作業開始せ�
 Delivery is handled by `inbox_watcher.sh` (infrastructure layer).
 **Agents NEVER call tmux send-keys directly.**
 
-## Delivery Guarantee
+## Delivery Mechanism
 
-- File write with flock = guaranteed persistence
-- `inbox_watcher.sh` detects changes via `inotifywait` (kernel event, not polling — F004 compliant)
-- **No delivery verification needed** — write succeeded = message will be delivered
-- **No capture-pane checking needed**
+Two layers:
+1. **Message persistence**: `inbox_write.sh` writes to `queue/inbox/{agent}.yaml` with flock. Guaranteed.
+2. **Wake-up signal**: `inbox_watcher.sh` detects file change via `inotifywait` → sends SHORT nudge via send-keys (timeout 5s)
+
+The nudge says: "新着N件。queue/inbox/{agent}.yaml をReadして未読を処理せよ。"
+**Agent reads the inbox file itself.** Watcher never sends message content via send-keys.
+
+Special cases (CLI commands sent directly via send-keys):
+- `type: clear_command` → sends `/clear` + Enter + content
+- `type: model_switch` → sends the /model command directly
+
+## Inbox Processing Protocol (karo/ashigaru)
+
+When you receive an inbox nudge:
+1. `Read queue/inbox/{your_id}.yaml`
+2. Find all entries with `read: false`
+3. Process each message according to its `type`
+4. Update each processed entry: `read: true` (use Edit tool)
+5. Resume normal workflow
+
+**Also**: After completing ANY task, check your inbox for unread messages before going idle.
+This is a safety net — even if the wake-up nudge was missed, messages are still in the file.
 
 ## Report Flow (interrupt prevention)
 
@@ -144,3 +162,10 @@ System manages ALL white-collar work, not just self-improvement. Project folders
 5. **Screenshots**: See `config/settings.yaml` → `screenshot.path`
 6. **Skill candidates**: Ashigaru reports include `skill_candidate:`. Karo collects → dashboard. Shogun approves → creates design doc.
 7. **Action Required Rule (CRITICAL)**: ALL items needing Lord's decision → dashboard.md 🚨要対応 section. ALWAYS. Even if also written elsewhere. Forgetting = Lord gets angry.
+
+# Test Rules (all agents)
+
+1. **SKIP = FAIL**: テスト報告でSKIP数が1以上なら「テスト未完了」扱い。「完了」と報告してはならない。
+2. **Preflight check**: テスト実行前に前提条件（依存ツール、エージェント稼働状態等）を確認。満たせないなら実行せず報告。
+3. **E2Eテストは家老が担当**: 全エージェント操作権限を持つ家老がE2Eを実行。足軽はユニットテストのみ。
+4. **テスト計画レビュー**: 家老はテスト計画を事前レビューし、前提条件の実現可能性を確認してから実行に移す。
