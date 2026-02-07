@@ -104,7 +104,7 @@ send_cli_command() {
 # timeout prevents the 1.5-hour hang incident from recurring.
 send_wakeup() {
     local unread_count="$1"
-    local nudge="新着${unread_count}件。queue/inbox/${AGENT_ID}.yaml をReadして未読(read: false)を全て処理せよ。処理後 read: true に更新。"
+    local nudge="inbox${unread_count}"
 
     if ! timeout "$SEND_KEYS_TIMEOUT" tmux send-keys -t "$PANE_TARGET" "$nudge" 2>/dev/null; then
         echo "[$(date)] WARNING: send-keys nudge timed out ($SEND_KEYS_TIMEOUT s)" >&2

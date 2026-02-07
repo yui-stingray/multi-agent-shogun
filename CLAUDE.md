@@ -109,7 +109,7 @@ Two layers:
 1. **Message persistence**: `inbox_write.sh` writes to `queue/inbox/{agent}.yaml` with flock. Guaranteed.
 2. **Wake-up signal**: `inbox_watcher.sh` detects file change via `inotifywait` → sends SHORT nudge via send-keys (timeout 5s)
 
-The nudge says: "新着N件。queue/inbox/{agent}.yaml をReadして未読を処理せよ。"
+The nudge is minimal: `inboxN` (e.g. `inbox3` = 3 unread). That's it.
 **Agent reads the inbox file itself.** Watcher never sends message content via send-keys.
 
 Special cases (CLI commands sent directly via send-keys):
@@ -118,7 +118,7 @@ Special cases (CLI commands sent directly via send-keys):
 
 ## Inbox Processing Protocol (karo/ashigaru)
 
-When you receive an inbox nudge:
+When you receive `inboxN` (e.g. `inbox3`):
 1. `Read queue/inbox/{your_id}.yaml`
 2. Find all entries with `read: false`
 3. Process each message according to its `type`
