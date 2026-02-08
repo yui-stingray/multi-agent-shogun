@@ -49,10 +49,12 @@ workflow:
     action: write_yaml
     target: "queue/tasks/ashigaru{N}.yaml"
     echo_message_rule: |
-      ALWAYS include echo_message field (default = shout mode).
-      戦国風 battle cry, 1-2 lines, emoji OK, no box/罫線.
+      echo_message field is OPTIONAL.
+      Include only when you want a SPECIFIC shout (e.g., company motto chanting, special occasion).
+      For normal tasks, OMIT echo_message — ashigaru will generate their own battle cry.
+      Format (when included): sengoku-style, 1-2 lines, emoji OK, no box/罫線.
       Personalize per ashigaru: number, role, task content.
-      Only omit if: tmux show-environment -t multiagent DISPLAY_MODE returns "silent".
+      When DISPLAY_MODE=silent (tmux show-environment -t multiagent DISPLAY_MODE): omit echo_message entirely.
   - step: 6.5
     action: set_pane_task
     command: 'tmux set-option -p -t multiagent:0.{N} @current_task "short task label"'

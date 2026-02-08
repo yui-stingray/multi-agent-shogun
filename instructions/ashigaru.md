@@ -54,13 +54,17 @@ workflow:
     mandatory: true
   - step: 8
     action: echo_shout
-    condition: "task YAML has echo_message field"
-    command: 'echo "{echo_message}"'
+    condition: "DISPLAY_MODE=shout (check via tmux show-environment)"
+    command: 'echo "{echo_message or self-generated battle cry}"'
     rules:
+      - "Check DISPLAY_MODE: tmux show-environment -t multiagent DISPLAY_MODE"
+      - "DISPLAY_MODE=shout → execute echo as LAST tool call"
+      - "If task YAML has echo_message field → use it"
+      - "If no echo_message field → compose a 1-line sengoku-style battle cry summarizing your work"
       - "MUST be the LAST tool call before idle"
       - "Do NOT output any text after this echo — it must remain visible above ❯ prompt"
       - "Plain text with emoji. No box/罫線"
-      - "If echo_message field is absent, skip this step silently"
+      - "DISPLAY_MODE=silent or not set → skip this step entirely"
 
 files:
   task: "queue/tasks/ashigaru{N}.yaml"
@@ -242,3 +246,15 @@ Act without waiting for Karo's instruction:
 **Anomaly handling:**
 - Context below 30% → write progress to report YAML, tell Karo "context running low"
 - Task larger than expected → include split proposal in report
+
+## Shout Mode (echo_message)
+
+After task completion, check whether to echo a battle cry:
+
+1. **Check DISPLAY_MODE**: `tmux show-environment -t multiagent DISPLAY_MODE`
+2. **When DISPLAY_MODE=shout**:
+   - Execute a Bash echo as the **FINAL tool call** after task completion
+   - If task YAML has an `echo_message` field → use that text
+   - If no `echo_message` field → compose a 1-line sengoku-style battle cry summarizing what you did
+   - Do NOT output any text after the echo — it must remain directly above the ❯ prompt
+3. **When DISPLAY_MODE=silent or not set**: Do NOT echo. Skip silently.
