@@ -1,0 +1,108 @@
+# LLM Staff Directory
+# AI Companyで管理するLLMスタッフの定義
+
+staff:
+  # Claude Sonnet - 高品質コード生成・デバッグ
+  claude-sonnet:
+    id: claude-sonnet
+    name: "Claude Sonnet"
+    provider: anthropic
+    role: engineer
+    bio: "高品質コード生成・デバッグ・要約化"
+    skills:
+      - code-gen
+      - debugging
+      - summarization
+      - analysis
+    status: active
+    model: claude-sonnet-4-20250514
+    api_key_env: ANTHROPIC_API_KEY
+    max_tokens: 200000
+    created_at: "2026-02-08T00:00:00Z"
+  
+  # Claude Opus - 戦略的意思決定・複雑なタスク
+  claude-opus:
+    id: claude-opus
+    name: "Claude Opus"
+    provider: anthropic
+    role: senior-engineer
+    bio: "戦略的意思決定・複雑な問題解決"
+    skills:
+      - architecture-design
+      - problem-solving
+      - code-review
+      - leadership
+    status: active
+    model: claude-3-7-sonnet-20250222
+    api_key_env: ANTHROPIC_API_KEY
+    max_tokens: 200000
+    created_at: "2026-02-08T00:00:00Z"
+  
+  # Codex - 軽量コーディングエージェント
+  codex:
+    id: codex
+    name: "Codex"
+    provider: openai
+    role: junior-engineer
+    bio: "軽量コーディング・ターミナル自動化"
+    skills:
+      - code-gen
+      - terminal-automation
+      - quick-tasks
+    status: active
+    model: gpt-4o
+    api_key_env: OPENAI_API_KEY
+    max_tokens: 128000
+    created_at: "2026-02-08T00:00:00Z"
+  
+  # Gemini Pro - リサーチ・アナリシス
+  gemini-pro:
+    id: gemini-pro
+    name: "Gemini Pro"
+    provider: google
+    role: analyst
+    bio: "リサーチ・アナリシス・文章作成"
+    skills:
+      - research
+      - analysis
+      - writing
+      - summarization
+    status: active
+    model: gemini-2.5-pro
+    api_key_env: GOOGLE_API_KEY
+    max_tokens: 917280
+    created_at: "2026-02-08T00:00:00Z"
+
+# スキルタグ定義
+skill_tags:
+  code-gen: "コード生成能力"
+  debugging: "デバッグ・問題解決"
+  summarization: "要約化能力"
+  analysis: "分析・調査"
+  writing: "文章作成能力"
+  terminal-automation: "ターミナル自動化"
+  architecture-design: "アーキテクチャ設計"
+  problem-solving: "複雑な問題解決"
+  code-review: "コードレビュー"
+  leadership: "リーダーシップ・意思決定"
+  research: "リサーチ能力"
+  quick-tasks: "軽量タスク処理"
+
+# 役割定義
+roles:
+  engineer: "エンジニア - コード開発・実装"
+  senior-engineer: "上級エンジニア - アーキテクチャ設計・レビュー"
+  analyst: "アナリスト - 調査・分析"
+  writer: "ライター - 文章作成・編集"
+
+# プロバイダー定義
+providers:
+  anthropic: "Anthropic - Claude系列"
+  openai: "OpenAI - Codex・GPT"
+  google: "Google - Gemini系列"
+
+# スタッフ状態定義
+status:
+  active: "稼動中 - タスク割り当て可能"
+  paused: "一時停止 - タスク割り当て対象外"
+  offline: "オフライン - 稼動してない"
