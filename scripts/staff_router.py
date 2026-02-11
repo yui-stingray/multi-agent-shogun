@@ -1,19 +1,17 @@
 #!/usr/bin/python3
 """
-Staff Router - タスクとスタッフの適合度スコア計算・自動割り当て（詳細版・Python標準YAML版）
+Staff Router - タスクとスタッフの適合度スコア計算・自動割り当て（修正版）
 Alexの拡張属性管理（Bearer Token認証）を参考にしたYAML管理
-シェバングを明示的に指定して、環境の依存を回避
 """
 
 import sys
 import os
 import yaml  # 標準yamlモジュール（LibYAML）
 import json
-import subprocess
 from pathlib import Path
 from datetime import datetime
 
-# 設義
+# 設定
 SCRIPT_DIR = Path(__file__).parent
 STAFF_CONFIG = SCRIPT_DIR / "../config/staff.yaml"
 LOG_DIR = SCRIPT_DIR / "../logs"
@@ -76,6 +74,8 @@ def analyze_task_advanced(task_description):
 def calculate_staff_score_advanced(staff, task_keywords):
     """詳細なスコア計算（役割 + スキル + モデル）"""
     score = 0
+    role_score = 0
+    skill_score = 0
     
     # ステータスチェック
     if staff.get('status') != 'active':
@@ -87,8 +87,8 @@ def calculate_staff_score_advanced(staff, task_keywords):
         'engineer': 3,
         'senior-engineer': 5,
         'junior-engineer': 2,
-        'analyst': 2,
         'architect': 5,
+        'analyst': 2,
         'cto': 5,
         'manager': 4,
         'reviewer': 3,
@@ -100,19 +100,24 @@ def calculate_staff_score_advanced(staff, task_keywords):
     
     # スキルスコア（キーワードマッチング）
     skills = staff.get('skills', [])
-    skill_names = [s if isinstance(skills, list) else [skills] for s in skills]
+    
+    # skillsが文字列の場合はリストに変換
+    if isinstance(skills, str):
+        skills = [skill.strip() for skill in skills.split(' ')] if skills else []
     
     for keyword in task_keywords:
         category, weight = keyword.split(':')
+        weight = int(weight)  # 整数に変換
         
         # スキル名にキーワードが含まれているかチェック
-        for skill_name in skill_names:
+        for skill_name in skills:
             skill_lower = skill_name.lower()
-            keyword_in_skill = keyword.lower() in skill_lower
+            keyword_lower = category.lower()
             
             # 直接マッチまたはあいまいマッチ
-            if keyword_in_skill:
-                score += int(weight)
+            if keyword_lower in skill_lower:
+                score += weight
+                skill_score += weight
                 logger.info(f"[MATCH] {staff.get('id', 'unknown')}: {keyword} (スキル: {skill_name}, +{weight})")
                 break
     
@@ -123,7 +128,9 @@ def calculate_staff_score_advanced(staff, task_keywords):
     elif 'sonnet' in model or 'claude-3.5-sonnet' in model or 'claude-haiku' in model:
         score += 1  # 中堅モデル
     
-    logger.debug(f"[SCORE] {staff.get('id', 'unknown')}: role={role_score}, skills={score - role_score}, model_bonus={score - (role_score + score - model)}")
+    # 簡素なデバッグ出力
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(f"[SCORE] {staff.get('id', 'unknown')}: role={role_score}, skills={skill_score}, model={score - role_score - skill_score}, total={score}")
     
     return score
 
